@@ -18,15 +18,17 @@ class TaskStates(StatesGroup):
     waiting_for_answer = State()
     waiting_for_confirmation = State()
 
+ 
 
-@router.callback_query(F.data.startswith("task_id_"))
+
+@router.callback_query(F.data.startswith("learning_"))
 async def process_task_learning_selection(callback: CallbackQuery):
 
-    print('make tasks')
-    task_id = int(callback.data.split("_")[1])
-    data = task_manager.get_random()
+    task_id = int(callback.data.split("_")[1]) # type: ignore
+    photo = FSInputFile(f"photo/{task_id}.png")
 
-@router.callback_query(F.data.startswith("task_1-10"))
-async def process_task_selection(callback: CallbackQuery):
-    await callback.message.answer("Выберите тип задания", reply_markup=get_task_id_keyboard())
-    await callback.message.delete() # type: ignore
+
+    await callback.message.answer_photo(photo, caption=f'задание №{task_id}')
+    await callback.message.delete()
+
+

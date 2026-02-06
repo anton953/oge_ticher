@@ -64,3 +64,50 @@ async def cmd_help(message: Message):
 async def menu_help(message: Message):
     """Обработчик кнопки Помощь"""
     await cmd_help(message)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@router.callback_query(F.data.startswith("hint_"))
+async def get_hint(callback: CallbackQuery):
+    """Получение подсказки"""
+    await callback.answer()
+    task_id = int(callback.data.split("_")[1])
+    
+    task = task_manager.get_task(task_id=task_id)
+    if task and "hints" in task and task["hints"]:
+        hint_text = f"💡 <b>Подсказка к заданию #{task_id}:</b>\n\n{task['hints'][0]}"
+        await callback.message.answer(hint_text, parse_mode="HTML")
+    else:
+        await callback.message.answer("🤔 Подсказка для этого задания пока не готова.")
+
+@router.callback_query(F.data.startswith("solution_"))
+async def get_solution(callback: CallbackQuery):
+    """Получение решения"""
+    await callback.answer()
+    task_id = int(callback.data.split("_")[1])
+    
+    task = task_manager.get_task(task_id=task_id)
+    if task and "explanation" in task:
+        solution_text = f"📝 <b>Решение задания #{task_id}:</b>\n\n{task['explanation']}"
+        await callback.message.answer(solution_text, parse_mode="HTML")
+    else:
+        await callback.message.answer("📖 Решение для этого задания готовится.")
+
+@router.callback_query(F.data == "next_task")
+async def get_next_task(callback: CallbackQuery):
+    """Следующее задание"""
+    await callback.answer()
+    await get_task_menu(callback.message)

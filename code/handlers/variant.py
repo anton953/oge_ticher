@@ -18,15 +18,16 @@ class TaskStates(StatesGroup):
     waiting_for_answer = State()
     waiting_for_confirmation = State()
 
-
-@router.callback_query(F.data.startswith("task_id_"))
+ 
+@router.callback_query(F.data.startswith("variant_"))
 async def process_task_learning_selection(callback: CallbackQuery):
 
-    print('make tasks')
-    task_id = int(callback.data.split("_")[1])
-    data = task_manager.get_random()
+    print('make variant')
 
-@router.callback_query(F.data.startswith("task_1-10"))
+
+
+@router.callback_query(F.data.startswith("redy_variant"))
 async def process_task_selection(callback: CallbackQuery):
-    await callback.message.answer("Выберите тип задания", reply_markup=get_task_id_keyboard())
+    await callback.message.answer("Выберите вариант", reply_markup=get_variant_keyboard())
     await callback.message.delete() # type: ignore
+    pass
