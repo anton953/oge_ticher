@@ -2,15 +2,15 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from tasks.task_manager import TaskManager
+# from tasks.task_manager import TaskManager
 from keyboars import *
 from database import Database
 
-from task_manager import TaskManager
+from keyboars.k_learning import *
 
 router = Router()
 db = Database()
-task_manager = TaskManager()
+# task_manager = TaskManager()
 
 
 

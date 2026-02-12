@@ -10,6 +10,10 @@ from aiogram.enums import ParseMode
 from handlers.start import router as start_router
 from handlers.tasks import router as tasks_router
 from handlers.main_screen_func import router as main_screen_router
+from handlers.learning import router as learning_router
+from handlers.variant import router as variant_router
+
+
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +41,8 @@ async def main():
     dp.include_router(start_router)
     dp.include_router(tasks_router)
     dp.include_router(main_screen_router)
+    dp.include_router(learning_router)
+    dp.include_router(variant_router)
     
     # Запуск polling
     await bot.delete_webhook(drop_pending_updates=True)
