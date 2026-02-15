@@ -45,15 +45,15 @@ class TaskManager:
 
 
 if __name__ == '__main__':
-    manager = TaskManager('tasks/task_1.json')
+    manager = TaskManager()
 
     # # Всего заданий
     # print(manager.count())  # 76
 
-    # # Получить задание по ID
-    # task = manager.get_by_id('8405')
-    # print(task['condition'])  # текст условия
-    # print(task['answer'])    # Dota
+    # Получить задание по ID
+    task = manager.get_by_id(6, '6981')
+    print(task['condition'])  # текст условия
+    print(task['answer'])    # Dota
 
     # # Только ответ (быстро)
     # print(manager.get_answer(573))  # 104
@@ -64,12 +64,12 @@ if __name__ == '__main__':
 
 
     # Случайное задание
-    task = manager.get_random()
-    print(task['id'])  # например: 8342
-    print(task['condition'])        # полный текст условия
-    print(task['answer'])          # например: 2
+    # task = manager.get_random()
+    # print(task['id'])  # например: 8342
+    # print(task['condition'])        # полный текст условия
+    # print(task['answer'])          # например: 2
 
     # Для тестирования — 5 случайных вопросов
-    for i in range(5):
-        t = manager.get_random()
-        print(f"{t['id']}: {t['answer']}")
+    # for i in range(5):
+    #     t = manager.get_random()
+    #     print(f"{t['id']}: {t['answer']}")

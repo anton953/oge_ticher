@@ -22,3 +22,17 @@ def get_task_id_keyboard():
     # builder.add(InlineKeyboardButton(text="16", callback_data="task_16"))
     builder.adjust(3)
     return builder.as_markup()
+
+
+
+def get_task_answer_keyboard(id_task, id, flag=0):
+    """Выбор типа задания"""
+    builder = InlineKeyboardBuilder()
+    if flag:
+        builder.add(InlineKeyboardButton(text="Показать ответ",callback_data=f"get_answer_{id_task}_{id}"))
+    builder.add(InlineKeyboardButton(text="выбор заданий", callback_data="task_1-10"))
+    builder.add(InlineKeyboardButton(text="=>", callback_data=f"task_id_{id_task}"))
+
+    
+    builder.adjust(1)
+    return builder.as_markup()

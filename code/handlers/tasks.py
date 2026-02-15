@@ -11,6 +11,10 @@ from database import Database
 from task_manager import TaskManager
 
 
+import re
+from aiogram import html
+
+
 import requests
 
 
@@ -45,9 +49,11 @@ async def process_task_learning_selection(callback: CallbackQuery):
 
         url = 'https://kpolyakov.spb.ru/cms/images/' + ur
 
+
+
         await callback.message.answer_photo(
             photo=url,
-            caption="Фото из интернета"
+            # caption=clean_caption
         )
         # response = requests.get(url)
 
@@ -58,10 +64,29 @@ async def process_task_learning_selection(callback: CallbackQuery):
         # else:
         #     print("Не удалось скачать фото")
         
-    
-    await callback.message.answer(condition, reply_markup=get_task_id_keyboard())
+    # caption_text = "Евпсихий решил серьезно заняться изучением языков программирования. Он записал одну и ту же программу на разных языках.\n\nПрограмма:\n```python\ns = int(input())\nt = int(input())\nA = int(input())\nif (s < A) and (t > 5) and (s > 5) and (t < A):\n    print(\"YES\")\nelse:\n    print(\"NO\")\n```\n\nБыло проведено 9 запусков программы, при которых в качестве значений переменных s и t вводились следующие пары чисел:\n(1, 2); (12, 3); (3, 12); (11, 12); (-13, -12); (-13, 12); (-14, 11); (10, 10); (10, 6)\n\nСколько существует целых значений параметра А, при котором для указанных входных данных программа напечатает «YES» 2 раза?"
+    # caption_text = re.sub(r'<br\s*/?>', '\n', caption_text, flags=re.IGNORECASE)
+    caption_text = re.sub(r'<.*?>', '', condition)
+    caption_text = f"Описание: {html.quote(caption_text)}"
 
     
+    await callback.message.answer(caption_text, reply_markup=get_task_answer_keyboard(task_id, id, 1))
+
+    
+
+@router.callback_query(F.data.startswith("get_answer_"))
+async def process_task_selection(callback: CallbackQuery):
+    task_id = int(callback.data.split("_")[2])
+    id = int(callback.data.split("_")[3])
+
+
+    data = task_manager.get_by_id(task_id, id)
+    answer = data['answer']  
+
+
+
+    await callback.message.answer(f'Правельный ответ: {answer}', 0)
+    # await callback.message.delete() # type: ignore
 
 
 
@@ -71,3 +96,5 @@ async def process_task_learning_selection(callback: CallbackQuery):
 async def process_task_selection(callback: CallbackQuery):
     await callback.message.answer("Выберите тип задания", reply_markup=get_task_id_keyboard())
     await callback.message.delete() # type: ignore
+
+
