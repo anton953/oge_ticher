@@ -1,5 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
+
 from aiogram.filters import CommandStart, Command
 from database import Database
 from keyboars.keyboars import *
@@ -8,7 +10,8 @@ router = Router()
 db = Database()
 
 @router.message(CommandStart())
-async def cmd_start(message: Message):
+async def cmd_start(message: Message, state: FSMContext):
+    await state.clear()
     """Обработчик команды /start"""
     user_id = message.from_user.id
     username = message.from_user.username
@@ -35,7 +38,8 @@ async def cmd_start(message: Message):
     await message.answer(welcome_text, reply_markup=get_main_menu())
 
 @router.message(Command("help"))
-async def cmd_help(message: Message):
+async def cmd_help(message: Message, state: FSMContext):
+    await state.clear()
     """Обработчик команды /help"""
     help_text = """
     ℹ️ <b>Справка по использованию бота</b>
@@ -61,7 +65,8 @@ async def cmd_help(message: Message):
     await message.answer(help_text, parse_mode="HTML")
 
 @router.message(F.text == "ℹ️ Помощь")
-async def menu_help(message: Message):
+async def menu_help(message: Message, state: FSMContext):
+    await state.clear()
     """Обработчик кнопки Помощь"""
     await cmd_help(message)
 

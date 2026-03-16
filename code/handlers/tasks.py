@@ -29,11 +29,24 @@ class TaskStates(StatesGroup):
     waiting_for_confirmation = State()
 
 
-@router.callback_query(F.data.startswith("task_id_"))
-async def process_task_learning_selection(callback: CallbackQuery):
+
+@router.callback_query(F.data.startswith("task_1-10"))
+async def process_task_selection(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+
+    await callback.message.answer("Выберите тип задания", reply_markup=get_task_id_keyboard())
+    await callback.message.delete() # type: ignore
+
+
+
+
+
+
+async def send_task(task_id, event_source: Message, state: FSMContext):
+    await state.clear()
 
     print('make tasks')
-    task_id = int(callback.data.split("_")[2])
+    # task_id = int(callback.data.split("_")[2])
     data = task_manager.get_random(task_id)
     id = data['id']
     condition = data['condition']
@@ -51,7 +64,7 @@ async def process_task_learning_selection(callback: CallbackQuery):
 
 
 
-        await callback.message.answer_photo(
+        await event_source.answer_photo(
             photo=url,
             # caption=clean_caption
         )
@@ -69,13 +82,29 @@ async def process_task_learning_selection(callback: CallbackQuery):
     caption_text = re.sub(r'<.*?>', '', condition)
     caption_text = f"Описание: {html.quote(caption_text)}"
 
+
+    print(f'############# answer: {answer}')
+
     
-    await callback.message.answer(caption_text, reply_markup=get_task_answer_keyboard(task_id, id, 1))
+    await event_source.answer(caption_text, reply_markup=get_task_answer_keyboard(task_id, id, 1))
+    
+    await state.update_data(
+        current_task=task_id,
+        correct_answer=answer,
+        attempts=0
+    )
+    await state.set_state(TaskStates.waiting_for_answer)
+
+@router.callback_query(F.data.startswith("task_id_"))
+async def process_task_learning_selection(callback: CallbackQuery, state: FSMContext):
+    task_id = int(callback.data.split("_")[2])
+
+    await send_task(task_id, callback.message, state)
 
     
 
 @router.callback_query(F.data.startswith("get_answer_"))
-async def process_task_selection(callback: CallbackQuery):
+async def process_task_selection(callback: CallbackQuery, state: FSMContext):
     task_id = int(callback.data.split("_")[2])
     id = int(callback.data.split("_")[3])
 
@@ -85,16 +114,56 @@ async def process_task_selection(callback: CallbackQuery):
 
 
 
-    await callback.message.answer(f'Правельный ответ: {answer}', 0)
+    await callback.message.answer(f'✅Правельный ответ: {answer}', 0)
     # await callback.message.delete() # type: ignore
+    await state.clear()
 
 
 
 
 
-@router.callback_query(F.data.startswith("task_1-10"))
-async def process_task_selection(callback: CallbackQuery):
-    await callback.message.answer("Выберите тип задания", reply_markup=get_task_id_keyboard())
-    await callback.message.delete() # type: ignore
+# Обработка ответа
+@router.message(TaskStates.waiting_for_answer)
+async def handle_answer(message: Message, state: FSMContext):
+    user_answer = message.text.strip().lower()
+    print(user_answer)
+    
+    # Получаем данные из состояния
+    data = await state.get_data()
+    correct_answer = data.get('correct_answer')
+    task_id = data.get('current_task')
+    attempts = data.get('attempts', 0) + 1
+    
+    # Обновляем количество попыток
+    await state.update_data(attempts=attempts)
+    
+    # Проверяем ответ
+    if user_answer == correct_answer.lower():
+        # Правильный ответ
+        await message.answer(
+            "✅ <b>АБСОЛЮТНО ВЕРНО!</b>\n\n"
+            f"Вы ответили с {attempts} попытки!\n"
+            # "Хотите ещё задание? /task",
+            # parse_mode=ParseMode.HTML
+        )
+        await state.clear()
+        await send_task(task_id, message, state)
 
-
+    else:
+        # Неправильный ответ
+        if attempts >= 3:
+            # Сдаемся после 3 попыток
+            await message.answer(
+                f"❌ К сожалению, правильный ответ: <b>{correct_answer}</b>\n\n"
+                # "Попробуйте другое задание: /task",
+                # parse_mode=ParseMode.HTML
+            )
+            await state.clear()
+            await send_task(task_id, message, state)
+        else:
+            # Даем еще попытку
+            await message.answer(
+                f"❌ Неправильно. Попробуйте еще раз.\n"
+                f"Осталось попыток: {3 - attempts}",
+                # parse_mode=ParseMode.HTML
+            )

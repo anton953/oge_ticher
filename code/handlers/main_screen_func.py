@@ -17,7 +17,9 @@ class TaskStates(StatesGroup):
     waiting_for_confirmation = State()
 
 @router.message(F.text == "🚀 Получить задание")
-async def get_task_menu(message: Message):
+async def get_task_menu(message: Message, state: FSMContext):
+    await state.clear()   
+
     """Меню выбора типа задания"""
     text = """
     📚 <b>Выбери тип задания:</b>
@@ -38,7 +40,8 @@ async def get_task_menu(message: Message):
 
 
 @router.message(F.text == "📚 Oбучение")
-async def learning(message: Message):
+async def learning(message: Message, state: FSMContext):
+    await state.clear()
     await message.answer("Выберите тип задания", reply_markup=get_task_learning_type_keyboard())
 
 
